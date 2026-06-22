@@ -58,6 +58,16 @@ canvas { display: block; }
   position: fixed; bottom: 22px; right: 24px; font-size: 11px;
   color: #9499ad; pointer-events: none;
 }
+
+#bgm-btn {
+  position: fixed; bottom: 22px; left: 26px;
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid rgba(120,110,170,0.18); background: rgba(255,255,255,0.92);
+  font-size: 16px; cursor: pointer; line-height: 1;
+  box-shadow: 0 4px 14px rgba(60,50,110,0.12); transition: filter 0.15s;
+}
+#bgm-btn:hover { filter: brightness(1.05); }
+#bgm-btn.muted { opacity: 0.55; }
 </style>
 </head>
 <body>
@@ -86,6 +96,9 @@ canvas { display: block; }
 
 <div id="toast"></div>
 <div id="hint">Ziehen zum Drehen · Scrollen zum Zoomen</div>
+
+<audio id="bgm" src="office-theme.mp3" loop preload="auto"></audio>
+<button id="bgm-btn" title="Musik an/aus">🔊</button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
@@ -662,6 +675,33 @@ window.addEventListener('resize', () => {
   camera.left = -D*aspect; camera.right = D*aspect; camera.top = D; camera.bottom = -D;
   camera.updateProjectionMatrix();
   renderer.setSize(W, H);
+});
+
+// ─────────────────────────────────────────────
+// HINTERGRUNDMUSIK (leise, Endlosschleife)
+// ─────────────────────────────────────────────
+const bgm = document.getElementById('bgm');
+const bgmBtn = document.getElementById('bgm-btn');
+bgm.volume = 0.15;
+let bgmMuted = false;
+
+function tryPlay() {
+  if (bgmMuted) return;
+  bgm.play().catch(() => {});   // Browser blockt Autoplay teils bis zur ersten Interaktion
+}
+// Sofort versuchen, sonst beim ersten Klick/Scroll/Tastendruck starten
+tryPlay();
+['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev =>
+  window.addEventListener(ev, function once() {
+    tryPlay();
+    ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(e2 => window.removeEventListener(e2, once));
+  }, { once: false }));
+
+bgmBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  bgmMuted = !bgmMuted;
+  if (bgmMuted) { bgm.pause(); bgmBtn.textContent = '🔇'; bgmBtn.classList.add('muted'); }
+  else { bgm.play().catch(() => {}); bgmBtn.textContent = '🔊'; bgmBtn.classList.remove('muted'); }
 });
 </script>
 </body>
