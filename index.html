@@ -101,6 +101,7 @@ canvas { display: block; }
 <button id="bgm-btn" title="Musik an/aus">🔊</button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
 <script>
 // ─────────────────────────────────────────────
 // SCENE + RENDERER (heller Iso-Look)
@@ -112,7 +113,7 @@ let W = window.innerWidth, H = window.innerHeight;
 const D = 14.6;                    // Iso-Frustum-Halbgroesse
 let aspect = W / H;
 const camera = new THREE.OrthographicCamera(-D*aspect, D*aspect, D, -D, -100, 200);
-camera.zoom = 1;
+camera.zoom = 1.4;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -145,7 +146,7 @@ scene.add(fill);
 // ─────────────────────────────────────────────
 let isDragging = false, moved = false, lastX = 0, lastY = 0;
 let theta = Math.PI * 0.25, phi = 0.96;            // Start: klassischer Iso-Winkel
-let tTheta = theta, tPhi = phi, tZoom = 1;
+let tTheta = theta, tPhi = phi, tZoom = 1.4;
 const camDist = 80;
 
 renderer.domElement.addEventListener('mousedown', e => { isDragging = true; moved = false; lastX = e.clientX; lastY = e.clientY; });
@@ -163,7 +164,7 @@ renderer.domElement.addEventListener('wheel', e => {
   tZoom = Math.max(0.55, Math.min(2.4, tZoom - e.deltaY * 0.0016));
 }, { passive: false });
 
-const CENTER = new THREE.Vector3(0.5, 0.6, -1.5);
+const CENTER = new THREE.Vector3(1, 1, -1.5);
 function updateCamera() {
   theta += (tTheta - theta) * 0.1;
   phi   += (tPhi   - phi)   * 0.1;
@@ -238,225 +239,147 @@ windowOnWall(-19.72, -16.5, Math.PI/2);                        // A links
 windowOnWall(8.5, -17.72, 0); windowOnWall(15.5, -17.72, 0);   // B hinten
 
 // ─────────────────────────────────────────────
-// MOEBEL-BAUSTEINE
+// CUSTOM-DEKO (was Kenney nicht hat): Glas, Whiteboard, Pinnwand, Ringlicht, Wandbilder
 // ─────────────────────────────────────────────
-const WOOD = 0xe0a766, WOOD_D = 0xbc8442, CHAIR = 0x322d47, CHAIR_A = 0x4a4368;
-
-// Schreibtisch (Holz, helle Platte) mit optionaler Akzentkante
-function desk(x, z, ry=0, accent=null) {
-  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; root.add(g);
-  box(4.0, 0.18, 2.1, WOOD, 0, 1.5, 0, 0, g);
-  box(4.0, 0.12, 2.1, WOOD_D, 0, 1.4, 0, 0, g);          // Kante/Unterseite dunkler
-  if (accent) box(4.0, 0.1, 0.12, accent, 0, 1.5, 1.05, 0, g);
-  [[-1.8,-0.9],[1.8,-0.9],[-1.8,0.9],[1.8,0.9]].forEach(([lx,lz]) =>
-    box(0.16, 1.42, 0.16, WOOD_D, lx, 0.72, lz, 0, g));
-  return g;
+function glassWall(x, z, w, ry) {
+  box(w, 4.8, 0.12, 0xbfe3f2, x, 2.5, z, ry, root, { transparent:true, opacity:0.2 }).castShadow = false;
+  box(w, 0.18, 0.2, 0xcfd6e2, x, 0.12, z, ry);
+  box(w, 0.18, 0.2, 0xcfd6e2, x, 4.86, z, ry);
 }
-
-// Buerostuhl
-function chair(x, z, ry=0, color=CHAIR) {
-  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; root.add(g);
-  box(1.15, 0.2, 1.1, color, 0, 1.02, 0, 0, g);
-  box(1.18, 1.25, 0.18, color, 0, 1.72, -0.47, 0, g);
-  box(1.18, 0.22, 0.5, color, -0.0, 1.18, -0.2, 0, g);   // Lehnen-Ansatz
-  cyl(0.09, 0.09, 1.0, 0x2a2533, 0, 0.5, 0, 8, g);
-  [[-0.45,0.45],[0.45,0.45],[-0.45,-0.45],[0.45,-0.45],[0,-0.55]].forEach(([wx,wz]) =>
-    cyl(0.1, 0.1, 0.16, 0x201d2a, wx, 0.1, wz, 6, g));
-  return g;
-}
-
-// Monitor mit optionalem Bildschirm-Inhalt: 'edit' | 'code' | 'design' | Farbe
-function monitor(x, y, z, parent, scr=0x2f7fd6, w=1.7, h=1.05) {
-  box(w, h, 0.08, 0x202430, x, y, z, 0, parent);
-  box(0.1, 0.34, 0.1, 0x2a2d36, x, y-0.64, z, 0, parent);
-  box(0.62, 0.06, 0.34, 0x2a2d36, x, y-0.82, z, 0, parent);
-  const fz = z + 0.05;
-  if (scr === 'edit') {
-    box(w-0.12, h-0.12, 0.03, 0x12151d, x, y, fz, 0, parent).material = screen(0x12151d);
-    box(w-0.4, (h-0.2)*0.5, 0.02, 0x1d2740, x, y+0.18, fz+0.01, 0, parent).material = screen(0x24405f); // Vorschau
-    [0xf25c54,0x4f9bff,0x37c98a,0xffc857].forEach((c,i)=> // Timeline-Spuren
-      box(w-0.3, 0.08, 0.02, c, x, y-0.16-i*0.11, fz+0.01, 0, parent).material = screen(c));
-    const tri = new THREE.Mesh(new THREE.ConeGeometry(0.12,0.2,3), screen(0xff5a52));
-    tri.position.set(x, y+0.18, fz+0.03); tri.rotation.z = -Math.PI/2; parent.add(tri);
-  } else if (scr === 'code') {
-    box(w-0.12, h-0.12, 0.03, 0x10141d, x, y, fz, 0, parent).material = screen(0x10141d);
-    for (let i=0;i<5;i++) box((0.4+((i*7)%5)/6*0.9), 0.07, 0.02,[0x6cc6ff,0x37c98a,0xc792ea,0xffd479,0x8a8fa3][i%5], x-0.35+((i%2)*0.18), y+0.36-i*0.16, fz+0.01, 0, parent).material = screen([0x6cc6ff,0x37c98a,0xc792ea,0xffd479,0x8a8fa3][i%5]);
-  } else if (scr === 'design') {
-    box(w-0.12, h-0.12, 0.03, 0xf3f1ee, x, y, fz, 0, parent).material = screen(0xf3f1ee);
-    [[0xff6b6b,-0.3,0.15],[0x4fc3f7,0.25,0.2],[0xffd54f,0.0,-0.2],[0x9ccc65,-0.25,-0.18]].forEach(([c,sx,sy])=>
-      box(0.42,0.34,0.02,c,x+sx,y+sy,fz+0.01,0,parent).material = screen(c));
-  } else {
-    box(w-0.12, h-0.12, 0.04, scr, x, y, fz, 0, parent).material = screen(scr);
-  }
-}
-function keyboardMouse(x, z, parent) {
-  box(0.95, 0.06, 0.36, 0x2b2e38, x, 1.62, z+0.55, 0, parent);
-  box(0.22, 0.06, 0.34, 0x2b2e38, x+0.75, 1.62, z+0.55, 0, parent);
-}
-function laptop(x, z, parent, scr=0x46c0a0) {
-  box(0.96, 0.05, 0.66, 0xb9bfca, x, 1.62, z, 0, parent);
-  box(0.96, 0.62, 0.05, 0xb9bfca, x, 1.93, z-0.31, 0, parent);
-  box(0.86, 0.52, 0.03, 0x000, x, 1.95, z-0.28, 0, parent).material = screen(scr);
-}
-function plant(x, z, s=1) {
+function ringLight(x, z, s=1) {
   const g = new THREE.Group(); g.position.set(x,0,z); g.scale.setScalar(s); root.add(g);
-  cyl(0.3, 0.38, 0.6, 0xe6e9ef, 0, 0.3, 0, 8, g);
-  cyl(0.31, 0.31, 0.12, 0xcaa06a, 0, 0.58, 0, 8, g);
-  [[0,1.0,0.5,0x4f9e3f],[0.2,1.28,0.38,0x5cb348],[-0.18,1.22,0.4,0x6ec257],[0,1.45,0.3,0x57ad45]].forEach(([px,py,r,c])=>{
-    const m = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 0), mat(c));
-    m.position.set(px,py,0); m.castShadow=true; g.add(m);
-  });
-  return g;
+  cyl(0.08,0.1,0.06,0x2b2b33,0,0.05,0,6,g);
+  cyl(0.07,0.07,2.9,0x3a3a44,0,1.45,0.2,6,g);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.95,0.13,8,22), mat(0xfff3c4,{emissive:0xfff0b0,emissiveIntensity:0.85}));
+  ring.position.set(0,3.0,0); g.add(ring);
+  box(0.55,0.95,0.07,0x15171d,0,3.0,0.16,0,g).material = screen(0x2a2f3a);
 }
-// Wandbild: Rahmen + Motiv ('yt' = YouTube-Play, 'tri' = buntes Dreieck, sonst Farbe)
 function frame(x, y, z, ry, motif, w=2.0, h=1.5) {
   box(w, h, 0.14, 0xffffff, x, y, z, ry);
   const fz = z + (ry ? 0 : 0.07), fx = x + (ry ? (ry>0?-0.07:0.07) : 0);
   if (motif === 'yt') {
     box(w-0.24, h-0.24, 0.04, 0xe23b3b, fx, y, fz, ry).material = screen(0xe23b3b);
     const tri = new THREE.Mesh(new THREE.ConeGeometry(0.26,0.4,3), mat(0xffffff));
-    tri.position.set(fx + (ry?0.04:0), y, fz + (ry?0:0.04));
-    tri.rotation.z = -Math.PI/2; if (ry) tri.rotation.y = ry; parent_addSafe(tri);
+    tri.position.set(fx + (ry?0.04:0), y, fz + (ry?0:0.04)); tri.rotation.z = -Math.PI/2; if (ry) tri.rotation.y = ry;
+    tri.castShadow=false; root.add(tri);
   } else if (motif === 'tri') {
     box(w-0.24, h-0.24, 0.04, 0xf1f3f7, fx, y, fz, ry);
-    [[0x4fc3f7,-0.3,0.2],[0xff7043,0.28,0.1],[0xffd54f,0.0,-0.25],[0x9ccc65,0.3,-0.2],[0xab47bc,-0.28,-0.15]].forEach(([c,sx,sy])=>{
-      const t = new THREE.Mesh(new THREE.ConeGeometry(0.22,0.34,3), screen(c));
-      t.position.set(fx + (ry?0.03:sx), y+sy, fz + (ry?sx:0.03)); t.rotation.z = (sx+sy); if(ry) t.rotation.y=ry; parent_addSafe(t);
+    [[0x4fc3f7,-0.3,0.2],[0xff7043,0.28,0.1],[0xffd54f,0.0,-0.25],[0x9ccc65,0.3,-0.2]].forEach(([c,sx,sy])=>{
+      const t = new THREE.Mesh(new THREE.ConeGeometry(0.2,0.32,3), screen(c));
+      t.position.set(fx + (ry?0.03:sx), y+sy, fz + (ry?sx:0.03)); t.rotation.z = (sx+sy); if(ry) t.rotation.y=ry;
+      t.castShadow=false; root.add(t);
     });
   } else {
     box(w-0.24, h-0.24, 0.04, motif, fx, y, fz, ry).material = screen(motif);
   }
 }
-function parent_addSafe(m){ m.castShadow=false; root.add(m); }
 
-// Ringlicht mit Stativ + Handy
-function ringLight(x, z, s=1) {
-  const g = new THREE.Group(); g.position.set(x,0,z); g.scale.setScalar(s); root.add(g);
-  cyl(0.08,0.1,0.06,0x2b2b33,0,0.05,0,6,g);
-  [-0.6,0.6].forEach(a=>cyl(0.05,0.05,2.9,0x3a3a44,Math.sin(a)*0.4,1.45,Math.cos(a)*0.4-0.2,6,g));
-  cyl(0.07,0.07,2.9,0x3a3a44,0,1.45,0.25,6,g);
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.95,0.13,8,22), mat(0xfff3c4,{emissive:0xfff0b0,emissiveIntensity:0.85}));
-  ring.position.set(0,3.0,0); g.add(ring);
-  box(0.55,0.95,0.07,0x15171d,0,3.0,0.16,0,g).material = screen(0x2a2f3a); // Handy
-  return g;
-}
-// Buecherstapel
-function books(x, y, z, parent) {
-  [0x4f7fd6,0x57ad45,0xe0533a,0xf2b134].forEach((c,i)=>
-    box(0.32, 0.16, 1.0 - i*0.06, c, x, y+0.09+i*0.17, z, (i%2)*0.12, parent));
-}
-// Desk-Lampe
-function deskLamp(x, z, parent) {
-  cyl(0.18,0.22,0.06,0x4f9bd6,x,1.56,z,8,parent);
-  cyl(0.04,0.04,0.5,0x6cb0e0,x,1.8,z,6,parent);
-  const sh = new THREE.Mesh(new THREE.ConeGeometry(0.28,0.3,10,1,true), mat(0x4f9bd6));
-  sh.position.set(x,2.1,z); parent.add(sh);
-}
-
-// ═════════════ RAUM A (oben-links): Video + Social ═════════════
-// TIMO Video-Schnitt-Desk (Ecke links)
-const timoDesk = desk(-15.5, -16, 0, 0x0F6E56);
-monitor(-0.95, 2.55, -0.7, timoDesk, 'edit', 1.8, 1.1);
-monitor(0.95, 2.55, -0.7, timoDesk, 'edit', 1.8, 1.1);
-keyboardMouse(0, -0.05, timoDesk);
-box(1.2, 0.06, 0.85, 0x2a2d36, -1.45, 1.6, 0.45, 0, timoDesk);   // Grafiktablett
-cyl(0.07,0.08,0.4,0x3a3a4e,1.6,1.72,0.55,6,timoDesk);            // Stiftehalter
-const timoChair = chair(-15.5, -13, Math.PI, CHAIR);
-// Social-Setup (Mitte Raum A)
-const socialDesk = desk(-6, -16, 0, 0xefb14d);
-laptop(0.4, 0.1, socialDesk, 0xff5da2);
-box(0.42,0.8,0.06,0x15171d,1.5,1.95,0.2,0.3,socialDesk).material = screen(0xff5da2); // Handy
-deskLamp(-1.5, -0.5, socialDesk);
-cyl(0.1,0.11,0.2,0xffffff,1.2,1.66,0.6,8,socialDesk);           // Tasse
-ringLight(-10, -15.5);
-// Pinnwand auf Rueckwand A
+// Glas-Meetingraum-Waende + rechte Wand + Wandbild
+wall(21.85, 8, 0.4, 12);
+frame(21.6, 4.6, 8, -Math.PI/2, 'tri', 2.0, 1.5);
+glassWall(9.8, 8, 12, Math.PI/2);
+glassWall(15.5, 13.6, 11.4, 0);
+// Pinnwand (Raum A Rueckwand)
 box(3.2, 2.1, 0.1, 0xb98a5a, -3, 5.6, -21.6);
 [[0xffd34e,-0.85,0.45],[0xff8fa3,0.15,0.55],[0x8fd0ff,0.85,0.2],[0xb6f08a,-0.3,-0.35]].forEach(([c,sx,sy])=>
   box(0.55,0.55,0.03,c,-3+sx,5.6+sy,-21.5));
-
-// ═════════════ RAUM B (oben-rechts): EMILIA + Design ═════════════
-const emiliaDesk = desk(7.5, -14, 0, 0x6b4fb5);
-books(-1.5, 1.59, -0.4, emiliaDesk);
-laptop(0.3, 0.1, emiliaDesk, 0xff5da2);
-box(0.7,0.04,0.5,0xf4f1ea,1.4,1.59,0.5,0,emiliaDesk);          // Notizblock
-box(0.42,0.8,0.06,0x15171d,1.55,1.95,-0.3,0.3,emiliaDesk).material = screen(0xff5da2);
-const emiliaChair = chair(7.5, -11, Math.PI, 0x6b4fb5);
-// Design-Desk daneben (facing -x)
-const designDesk = desk(16.5, -12, Math.PI/2, 0xefb14d);
-monitor(0.6, 2.5, -0.65, designDesk, 'design', 1.9, 1.15);
-box(1.25, 0.06, 0.9, 0x2a2d36, -1.3, 1.6, 0.2, 0, designDesk); // Grafiktablett
-plant(20, -8.5, 0.95);
-// Wandbilder auf Rueckwand B (YouTube + buntes Dreieck)
-frame(12, 5.0, -17.6, 0, 'yt', 1.8, 1.35);
-frame(18.5, 5.0, -17.6, 0, 'tri', 1.8, 1.35);
-
-// ═════════════ TRAKT C links: Editing-/Render-Station ═════════════
-const editDesk = desk(-16.3, 2, Math.PI/2, 0x3a86ff);
-monitor(-1.7, 2.6, -0.7, editDesk, 'code', 1.7, 1.05);
-monitor(0.1, 2.6, -0.7, editDesk, 'edit', 1.7, 1.05);
-monitor(1.9, 2.6, -0.7, editDesk, 'design', 1.6, 1.0);
-keyboardMouse(0, -0.05, editDesk);
-const editChair = chair(-13.6, 2, -Math.PI/2, CHAIR);
-// PC-Tower neben dem Desk
-box(1.3, 2.5, 1.5, 0x23262f, -18.3, 1.25, -0.5);
-[[0x37d67a,0.6],[0xff5d5d,0.1],[0x4f9bff,-0.4]].forEach(([c,yy])=>
-  box(0.2,0.2,0.05,c,-17.6,1.5+yy,-0.5).material = screen(c));
-// Bilder auf der blauen Wand
-frame(-19.6, 4.6, -2.5, Math.PI/2, 0x4fc3f7, 1.7, 1.3);
-frame(-19.6, 4.6, 3, Math.PI/2, 0xff8a65, 1.7, 1.3);
-
-// ═════════════ TRAKT C Mitte-hinten: Buchhaltung + Whiteboard ═════════════
-const acctDesk = desk(-2, -3.6, 0, null);
-laptop(0.6, 0.1, acctDesk, 0xbfe3f2);
-box(1.1, 0.18, 0.8, 0x2b2e38, -1.2, 1.62, 0.4, 0, acctDesk);   // Tastenfeld/Kasse
-for (let r=0;r<3;r++) for (let cc=0;cc<3;cc++)
-  box(0.16,0.06,0.16,[0x6cc6ff,0xff8a65,0x9ccc65][(r+cc)%3], -1.5+cc*0.28, 1.72, 0.25+r*0.2, 0, acctDesk);
-const acctChair = chair(-2, -0.8, 0, CHAIR);
-// Whiteboard mit Charts + Kalender auf der Wand (z=-5.85, faceing +z)
+// Whiteboard mit Charts + Kalender (Wand z=-5.7)
 box(4.2, 3.0, 0.12, 0xf6f8fc, -4, 3.6, -5.7);
 const pie = new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.7,0.06,16,1,false,0,Math.PI*1.3), screen(0x4fc3f7));
 pie.rotation.x = Math.PI/2; pie.position.set(-4.8, 4.2, -5.62); root.add(pie);
 const pie2 = new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.7,0.06,16,1,false,Math.PI*1.3,Math.PI*0.7), screen(0xff8a65));
 pie2.rotation.x = Math.PI/2; pie2.position.set(-4.8, 4.2, -5.62); root.add(pie2);
 [[0x37c98a,0.7],[0xffd479,1.1],[0xf25c54,0.5],[0x6cc6ff,0.9]].forEach(([c,hh],i)=>
-  box(0.22,hh,0.04,c,-3.6+i*0.3,3.6+hh/2-0.6,-5.62).material = screen(c)); // Balken
-box(2.0, 2.2, 0.12, 0xffffff, -0.3, 3.7, -5.7);                  // Kalender
+  box(0.22,hh,0.04,c,-3.6+i*0.3,3.6+hh/2-0.6,-5.62).material = screen(c));
+box(2.0, 2.2, 0.12, 0xffffff, -0.3, 3.7, -5.7);
 for (let r=0;r<3;r++) for (let cc=0;cc<4;cc++)
   box(0.4,0.36,0.04,(r+cc)%2?0xe8edf5:0xf3f6fb,-1.0+cc*0.45,4.3-r*0.55,-5.62);
+// Wandbilder Raum B + Editing-Bay + Ringlicht
+frame(12, 5.0, -17.6, 0, 'yt', 1.8, 1.35);
+frame(18.5, 5.0, -17.6, 0, 'tri', 1.8, 1.35);
+frame(-19.6, 4.6, -2.5, Math.PI/2, 0x4fc3f7, 1.7, 1.3);
+frame(-19.6, 4.6, 3, Math.PI/2, 0xff8a65, 1.7, 1.3);
+ringLight(-10, -15.5);
 
-// ═════════════ TRAKT C rechts-vorne: Glas-Meetingraum ═════════════
-function glassWall(x, z, w, ry) {
-  box(w, 4.8, 0.12, 0xbfe3f2, x, 2.5, z, ry, root, { transparent:true, opacity:0.24 }).castShadow = false;
-  box(w, 0.18, 0.2, 0xcfd6e2, x, 0.12, z, ry);
-  box(w, 0.18, 0.2, 0xcfd6e2, x, 4.86, z, ry);
+// ─────────────────────────────────────────────
+// KENNEY-MOEBEL (glTF, CC0 Furniture Kit) laden + platzieren
+// ─────────────────────────────────────────────
+const SCALE = 4, TOP = 0.38 * 4;   // Tischplatten-Hoehe
+const gltfLoader = new THREE.GLTFLoader();
+const _cache = {};
+const MODELS = ['desk','deskCorner','chairDesk','chairModernCushion','computerScreen','computerKeyboard',
+  'computerMouse','laptop','books','bookcaseOpen','lampRoundTable','kitchenSink','kitchenCabinet',
+  'kitchenCabinetUpper','kitchenCoffeeMachine','table','pottedPlant','plantSmall1','plantSmall2','trashcan','rugRectangle'];
+function place(name, x, z, ry=0, opt={}) {
+  const src = _cache[name]; if (!src) return null;
+  const m = src.clone(true);
+  const s = opt.s || SCALE;
+  m.scale.set(opt.sx||s, opt.sy||s, opt.sz||s);
+  m.position.set(x, opt.y||0, z);
+  m.rotation.y = ry;
+  m.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  root.add(m); return m;
 }
-wall(21.85, 8, 0.4, 12);                              // rechte Wand hinter Meetingraum
-frame(21.6, 4.6, 8, -Math.PI/2, 'tri', 2.0, 1.5);
-glassWall(9.8, 8, 12, Math.PI/2);                    // linke Glaswand
-glassWall(15.5, 13.6, 11.4, 0);                      // vordere Glaswand
-box(5.6, 0.22, 3.0, 0xefb14d, 15.5, 1.05, 8);        // Meeting-Tisch
-box(5.6, 0.12, 3.0, 0xe79f33, 15.5, 1.16, 8);
-[[13,6,0],[15.5,6,0],[18,6,0],[13,10,Math.PI],[15.5,10,Math.PI],[18,10,Math.PI]].forEach(([cx,cz,r])=>
-  chair(cx, cz, r, 0x9e3b4a));
-plant(20.3, 4.2, 0.95);
-
-// ═════════════ TRAKT C Mitte: Kuechenzeile ═════════════
-const kitchen = new THREE.Group(); kitchen.position.set(5, 0, 6.5); root.add(kitchen);
-box(3.4, 1.5, 1.5, 0xf3f4f8, 0, 0.75, 0, 0, kitchen);
-box(3.5, 0.18, 1.6, 0xcfd6e2, 0, 1.56, 0, 0, kitchen);
-box(1.0, 0.12, 0.8, 0xb9c2d2, -0.7, 1.62, 0, 0, kitchen);    // Spuele
-cyl(0.05,0.05,0.45,0x9aa3b4,-0.7,1.84,-0.25,8,kitchen);      // Wasserhahn
-cyl(0.18,0.2,0.45,0x2a2d36,0.8,1.84,0,8,kitchen);            // Kaffeemaschine
-cyl(0.1,0.11,0.2,0xffffff,1.0,1.72,0.45,8,kitchen);          // Tasse
-box(2.6,0.5,0.45,0xe6cca6,0,2.7,-0.4,0,kitchen);             // Haengeschrank
-// Aktenvernichter / Muelleimer
-cyl(0.34,0.3,0.85,0xd5dbe6,8.2,0.42,7.5,8);
-
-// ═════════════ TRAKT C vorne: Konferenztisch ═════════════
-box(8.0, 0.24, 2.9, 0xf0b659, -5, 1.05, 13, 0);
-box(8.0, 0.14, 2.9, 0xe79f33, -5, 1.16, 13, 0);
-[-8,-5,-2].forEach(cx => { chair(cx, 11.2, 0, 0xe7ded0); chair(cx, 14.8, Math.PI, 0xe7ded0); });
-plant(-18, 12.5); plant(-18.5, -3);
+Promise.all(MODELS.map(n => new Promise((res) =>
+  gltfLoader.load('models/'+n+'.glb', g => { _cache[n] = g.scene; res(); }, undefined, () => res())
+))).then(() => {
+  // ── RAUM A: Timo Video (Ecke) ──
+  place('deskCorner', -15.5, -15.5, 0);
+  place('computerScreen', -16.4, -16.4, 0, {y:TOP});
+  place('computerScreen', -14.6, -16.4, 0, {y:TOP});
+  place('computerKeyboard', -15.5, -15.2, 0, {y:TOP});
+  place('computerMouse', -14.2, -15.2, 0, {y:TOP});
+  place('chairDesk', -15.5, -13, Math.PI);
+  // ── RAUM A: Social-Desk ──
+  place('desk', -6, -16, 0);
+  place('laptop', -6.2, -16.2, 0, {y:TOP});
+  place('lampRoundTable', -7.4, -16.3, 0, {y:TOP});
+  place('chairDesk', -6, -13.3, Math.PI);
+  // ── RAUM B: Emilia ──
+  place('desk', 7.5, -14, 0);
+  place('laptop', 7.2, -14.2, 0, {y:TOP});
+  place('books', 8.8, -14.3, 0, {y:TOP});
+  place('chairDesk', 7.5, -11.3, Math.PI);
+  // ── RAUM B: Design-Desk + Deko ──
+  place('desk', 16.5, -12, Math.PI/2);
+  place('computerScreen', 16.9, -12, Math.PI/2, {y:TOP});
+  place('chairDesk', 13.9, -12, Math.PI/2);
+  place('bookcaseOpen', 20.5, -16, Math.PI);
+  place('pottedPlant', 20, -8.5);
+  // ── TRAKT C: Editing-Bay (Ecke, an blauer Wand) ──
+  place('deskCorner', -16.3, 1.8, Math.PI/2);
+  place('computerScreen', -16.9, 0.4, Math.PI/2, {y:TOP});
+  place('computerScreen', -16.9, 2.2, Math.PI/2, {y:TOP});
+  place('computerScreen', -16.9, 4.0, Math.PI/2, {y:TOP});
+  place('chairDesk', -13.8, 2.0, -Math.PI/2);
+  place('bookcaseOpen', -18.8, -2.5, Math.PI/2);
+  // ── TRAKT C: Buchhaltungs-Desk ──
+  place('desk', -2, -3.6, 0);
+  place('laptop', -2.3, -3.8, 0, {y:TOP});
+  place('computerKeyboard', -1.0, -3.4, 0, {y:TOP});
+  place('chairDesk', -2, -1, Math.PI);
+  // ── TRAKT C: Kuechenzeile ──
+  place('kitchenCabinet', 3.8, 6.6, Math.PI);
+  place('kitchenSink', 5.1, 6.6, Math.PI);
+  place('kitchenCabinet', 6.4, 6.6, Math.PI);
+  place('kitchenCoffeeMachine', 6.5, 6.6, Math.PI, {y:TOP*1.18});
+  place('kitchenCabinetUpper', 4.5, 6.6, Math.PI, {y:3.0});
+  place('trashcan', 8.4, 7.6, 0);
+  // ── TRAKT C: Glas-Meetingraum ──
+  place('table', 15.5, 8, 0, {sx:SCALE*1.6, sz:SCALE*1.2});
+  [[13,5.6,0],[15.5,5.6,0],[18,5.6,0],[13,10.4,Math.PI],[15.5,10.4,Math.PI],[18,10.4,Math.PI]].forEach(([cx,cz,r])=>
+    place('chairModernCushion', cx, cz, r));
+  place('pottedPlant', 20.3, 4.2);
+  // ── TRAKT C: Konferenztisch ──
+  place('table', -5, 13, 0, {sx:SCALE*2.4, sz:SCALE*1.2});
+  [[-8.5,10.8,0],[-5,10.8,0],[-1.5,10.8,0],[-8.5,15.2,Math.PI],[-5,15.2,Math.PI],[-1.5,15.2,Math.PI]].forEach(([cx,cz,r])=>
+    place('chairModernCushion', cx, cz, r));
+  // ── Pflanzen in Ecken ──
+  place('pottedPlant', -18, 12.5);
+  place('plantSmall1', -18.5, -3, 0, {s:SCALE*1.3});
+  place('plantSmall2', 8.5, -16, 0, {s:SCALE*1.3});
+  window.__furnitureReady = true;
+});
 
 // ─────────────────────────────────────────────
 // CHARAKTERE (Low Poly, an deine Designs angelehnt)
@@ -769,6 +692,7 @@ bgmBtn.addEventListener('click', e => {
   if (bgmMuted) { bgm.pause(); bgmBtn.textContent = '🔇'; bgmBtn.classList.add('muted'); }
   else { bgm.play().catch(() => {}); bgmBtn.textContent = '🔊'; bgmBtn.classList.remove('muted'); }
 });
+
 </script>
 </body>
 </html>

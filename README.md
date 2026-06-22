@@ -29,6 +29,12 @@ Look, Route, Slash-Command) und in `netlify/functions/chat.js` unter `AGENTS` ei
 Ohne gesetzten `ANTHROPIC_API_KEY` läuft das 3D-Büro normal, der In-App-Chat zeigt aber einen
 Hinweis und der Handoff-Button nach Claude Code funktioniert weiterhin.
 
+## 3D-Modelle
+
+Die Möbel sind das **Kenney "Furniture Kit"** (CC0 / Public Domain, kenney.nl), liegen als
+glTF/GLB unter `models/` und werden zur Laufzeit per GLTFLoader geladen. CC0 heißt frei nutzbar,
+keine Attribution nötig. Wände, Glas, Whiteboard, Pinnwand, Ringlicht und Wandbilder sind custom.
+
 ## Lokal ansehen
 
 ```bash
