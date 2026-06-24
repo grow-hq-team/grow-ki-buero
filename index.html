@@ -338,7 +338,7 @@ Promise.all(MODELS.map(n => new Promise((res) =>
   station(1, -8, 0, { screens:1, kb:true });                            // Deko-Platz
   // ── BULLPEN Reihe Sued (z=-1), Sitze schauen nach -z (gegenueber) ──
   window.__home.Julia  = station(-9, -1, Math.PI, { laptop:true, kb:true });
-  station(-4, -1, Math.PI, { laptop:true });
+  window.__home.Katja  = station(-4, -1, Math.PI, { laptop:true, kb:true });
   station(1, -1, Math.PI, { screens:1, kb:true });
   ringLight(4.5, -8.5);
   // ── Meeting-Insel (offen, rechts) ──
@@ -469,6 +469,16 @@ const AGENTS = [
       { x:-9, z:0.98, sit:true, face:Math.PI },      // Bullpen Reihe Sued (Assistenz)
       { x:-9, z:3 }, { x:-4, z:4 }, { x:5.5, z:4 }, { x:6, z:9 },
       { x:5, z:13 }, { x:-5, z:13 }, { x:-13, z:13 }, { x:-13, z:3 }, { x:-9, z:3 },
+    ],
+  },
+  {
+    name:'Katja', initials:'KA', role:'Powerpferd Support', cmd:'/katja', color:0x3f9f6b,
+    x:-4, z:0.98,
+    look:{ skin:0xf4c9a8, top:0x3f9f6b, hair:0x6b4a2b, pants:0x3a3550, ponytail:true },
+    route:[
+      { x:-4, z:0.98, sit:true, face:Math.PI },      // Bullpen Reihe Sued (Support)
+      { x:-4, z:3 }, { x:3, z:4 }, { x:5.5, z:4 }, { x:5.5, z:-2 },
+      { x:1, z:-4.5 }, { x:-6, z:-4.5 }, { x:-11, z:-4.5 }, { x:-11, z:3 }, { x:-4, z:3 },
     ],
   },
 ];
