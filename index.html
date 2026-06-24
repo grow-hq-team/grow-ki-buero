@@ -447,8 +447,8 @@ const AGENTS = [
     look:{ skin:0xf4c9a8, top:0x7a4fb5, hair:0x6b4226, pants:0x35304d, longHair:true },
     route:[
       { x:-4, z:-9.98, sit:true, face:0 },           // Bullpen Reihe Nord
-      { x:0, z:-4.5 }, { x:5, z:-3 }, { x:8, z:3 },
-      { x:0, z:6 }, { x:-6, z:4 }, { x:-4, z:-4.5 },
+      { x:-6, z:-9.98 }, { x:-6, z:-4.5 }, { x:1, z:-4.5 }, { x:5, z:-2 },
+      { x:5, z:3 }, { x:0, z:4 }, { x:-6, z:4 }, { x:-6, z:-9.98 },
     ],
   },
   {
@@ -457,8 +457,8 @@ const AGENTS = [
     look:{ skin:0xf0c19a, top:0x3d4a66, hair:0x7a4a22, pants:0x2c3142, headphones:true, beard:0x5e3f1f },
     route:[
       { x:-9, z:-9.98, sit:true, face:0 },           // Bullpen Reihe Nord (Video)
-      { x:-4, z:-4.5 }, { x:2, z:-4.5 }, { x:6, z:2 },
-      { x:-2, z:6 }, { x:-8, z:5 }, { x:-9, z:-4.5 },
+      { x:-11, z:-9.98 }, { x:-11, z:-4.5 }, { x:-4, z:-4.5 }, { x:4, z:-4.5 },
+      { x:5, z:3 }, { x:0, z:4 }, { x:-8, z:4 }, { x:-11, z:3 }, { x:-11, z:-9.98 },
     ],
   },
   {
@@ -467,8 +467,8 @@ const AGENTS = [
     look:{ skin:0xf4c9a8, top:0xe07b9a, hair:0xe6c45a, pants:0x3a3550, ponytail:true },
     route:[
       { x:-9, z:0.98, sit:true, face:Math.PI },      // Bullpen Reihe Sued (Assistenz)
-      { x:-5, z:4 }, { x:2, z:5 }, { x:8, z:5 },
-      { x:13, z:1 }, { x:-2, z:8 }, { x:-8, z:3 },
+      { x:-9, z:3 }, { x:-4, z:4 }, { x:5.5, z:4 }, { x:6, z:9 },
+      { x:5, z:13 }, { x:-5, z:13 }, { x:-13, z:13 }, { x:-13, z:3 }, { x:-9, z:3 },
     ],
   },
 ];
@@ -611,6 +611,7 @@ function setPose(c, mode, t) {
 
 const clock = new THREE.Clock();
 const _v = new THREE.Vector3();
+const _lq = new THREE.Quaternion();
 
 function animate() {
   requestAnimationFrame(animate);
@@ -649,7 +650,8 @@ function animate() {
       if (c.timer <= 0) { c.ti = (c.ti + 1) % route.length; c.state = 'walk'; }
     }
 
-    c.label.quaternion.copy(camera.quaternion);   // Schild immer zur Kamera
+    // Schild immer frontal zur Kamera (Eltern-Drehung der Figur herausrechnen)
+    c.label.quaternion.copy(g.quaternion).invert().multiply(camera.quaternion);
   });
 
   updateCamera();
