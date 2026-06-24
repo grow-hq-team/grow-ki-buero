@@ -310,54 +310,63 @@ const _cache = {};
 const MODELS = ['desk','deskCorner','chairDesk','chairModernCushion','computerScreen','computerKeyboard',
   'computerMouse','laptop','books','bookcaseOpen','lampRoundTable','kitchenSink','kitchenCabinet',
   'kitchenCabinetUpper','kitchenCoffeeMachine','table','pottedPlant','plantSmall1','plantSmall2','trashcan','rugRectangle'];
+// Ausrichtungs-Offsets der Kenney-Modelle (per Screenshot kalibriert)
+const DESK_FLIP = Math.PI, CHAIR_FLIP = Math.PI, SCREEN_FLIP = Math.PI, MCHAIR_FLIP = Math.PI;
+const DESK_D = 0.39 * SCALE;
+// Platziert ein Modell zentriert auf (x,z) und stehend auf dem Boden (bzw. opt.y)
 function place(name, x, z, ry=0, opt={}) {
   const src = _cache[name]; if (!src) return null;
   const m = src.clone(true);
   const s = opt.s || SCALE;
   m.scale.set(opt.sx||s, opt.sy||s, opt.sz||s);
-  m.position.set(x, opt.y||0, z);
   m.rotation.y = ry;
+  m.updateMatrixWorld(true);
+  const bb = new THREE.Box3().setFromObject(m);
+  const c = new THREE.Vector3(); bb.getCenter(c);
+  m.position.set(x - c.x, (opt.y||0) - bb.min.y, z - c.z);
   m.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   root.add(m); return m;
 }
+// Kompletter Arbeitsplatz: fry = Richtung, in die der Sitzende schaut (zum Desk hin)
+function station(x, z, fry, o={}) {
+  const Fx = Math.sin(fry), Fz = Math.cos(fry);     // vorwaerts (Sitzplatz -> Desk)
+  const Rx = Math.cos(fry), Rz = -Math.sin(fry);    // rechts
+  place(o.corner ? 'deskCorner' : 'desk', x, z, fry + DESK_FLIP);
+  const chairPos = { x: x - Fx*(DESK_D/2 + 1.2), z: z - Fz*(DESK_D/2 + 1.2) };
+  if (o.chair !== false) place('chairDesk', chairPos.x, chairPos.z, fry + CHAIR_FLIP);
+  const back = DESK_D/2 - 0.3, n = o.screens || 0;
+  for (let i = 0; i < n; i++) { const off = (i - (n-1)/2) * 1.55;
+    place('computerScreen', x + Fx*back + Rx*off, z + Fz*back + Rz*off, fry + SCREEN_FLIP, {y:TOP}); }
+  if (o.kb) {
+    place('computerKeyboard', x - Fx*0.2, z - Fz*0.2, fry + SCREEN_FLIP, {y:TOP});
+    place('computerMouse', x - Fx*0.2 + Rx*0.95, z - Fz*0.2 + Rz*0.95, fry + SCREEN_FLIP, {y:TOP});
+  }
+  if (o.laptop) { const lo = o.lx || 0; place('laptop', x + Fx*0.1 + Rx*lo, z + Fz*0.1 + Rz*lo, fry + SCREEN_FLIP, {y:TOP}); }
+  if (o.books) place('books', x + Rx*1.05, z + Rz*1.05, fry + DESK_FLIP, {y:TOP});
+  if (o.lamp)  place('lampRoundTable', x + Fx*0.2 + Rx*(o.lampx||1.2), z + Fz*0.2 + Rz*(o.lampx||1.2), 0, {y:TOP});
+  return chairPos;
+}
+function ring6(cx, cz, ry, list) { list.forEach(p => place('chairModernCushion', p[0], p[1], p[2] + MCHAIR_FLIP)); }
+
+window.__home = {};
 Promise.all(MODELS.map(n => new Promise((res) =>
   gltfLoader.load('models/'+n+'.glb', g => { _cache[n] = g.scene; res(); }, undefined, () => res())
 ))).then(() => {
-  // ── RAUM A: Timo Video (Ecke) ──
-  place('deskCorner', -15.5, -15.5, 0);
-  place('computerScreen', -16.4, -16.4, 0, {y:TOP});
-  place('computerScreen', -14.6, -16.4, 0, {y:TOP});
-  place('computerKeyboard', -15.5, -15.2, 0, {y:TOP});
-  place('computerMouse', -14.2, -15.2, 0, {y:TOP});
-  place('chairDesk', -15.5, -13, Math.PI);
-  // ── RAUM A: Social-Desk ──
-  place('desk', -6, -16, 0);
-  place('laptop', -6.2, -16.2, 0, {y:TOP});
-  place('lampRoundTable', -7.4, -16.3, 0, {y:TOP});
-  place('chairDesk', -6, -13.3, Math.PI);
+  // ── RAUM A: Timo Video (Ecke, Sitz schaut nach -z) ──
+  window.__home.Timo = station(-15.5, -15.5, Math.PI, { corner:true, screens:2, kb:true });
+  // ── RAUM A: Social-Desk (Deko) ──
+  station(-6, -16, Math.PI, { laptop:true, lamp:true, lampx:1.3 });
   // ── RAUM B: Emilia ──
-  place('desk', 7.5, -14, 0);
-  place('laptop', 7.2, -14.2, 0, {y:TOP});
-  place('books', 8.8, -14.3, 0, {y:TOP});
-  place('chairDesk', 7.5, -11.3, Math.PI);
-  // ── RAUM B: Design-Desk + Deko ──
-  place('desk', 16.5, -12, Math.PI/2);
-  place('computerScreen', 16.9, -12, Math.PI/2, {y:TOP});
-  place('chairDesk', 13.9, -12, Math.PI/2);
-  place('bookcaseOpen', 20.5, -16, Math.PI);
-  place('pottedPlant', 20, -8.5);
-  // ── TRAKT C: Editing-Bay (Ecke, an blauer Wand) ──
-  place('deskCorner', -16.3, 1.8, Math.PI/2);
-  place('computerScreen', -16.9, 0.4, Math.PI/2, {y:TOP});
-  place('computerScreen', -16.9, 2.2, Math.PI/2, {y:TOP});
-  place('computerScreen', -16.9, 4.0, Math.PI/2, {y:TOP});
-  place('chairDesk', -13.8, 2.0, -Math.PI/2);
-  place('bookcaseOpen', -18.8, -2.5, Math.PI/2);
-  // ── TRAKT C: Buchhaltungs-Desk ──
-  place('desk', -2, -3.6, 0);
-  place('laptop', -2.3, -3.8, 0, {y:TOP});
-  place('computerKeyboard', -1.0, -3.4, 0, {y:TOP});
-  place('chairDesk', -2, -1, Math.PI);
+  window.__home.Emilia = station(7.5, -14, Math.PI, { laptop:true, books:true });
+  // ── RAUM B: Design-Desk (Deko, Sitz schaut nach +x) ──
+  station(16.5, -12, Math.PI/2, { screens:1 });
+  place('bookcaseOpen', 20.6, -16, Math.PI);
+  place('pottedPlant', 20.2, -8.5);
+  // ── TRAKT C: Editing-Bay (Ecke, Sitz schaut nach -x) ──
+  station(-16.3, 1.8, -Math.PI/2, { corner:true, screens:3, kb:true });
+  place('bookcaseOpen', -18.9, -2.5, Math.PI/2);
+  // ── TRAKT C: Buchhaltungs-/Assistenz-Desk (Julia, Sitz schaut nach -z) ──
+  window.__home.Julia = station(-2, -3.6, Math.PI, { laptop:true, kb:true });
   // ── TRAKT C: Kuechenzeile ──
   place('kitchenCabinet', 3.8, 6.6, Math.PI);
   place('kitchenSink', 5.1, 6.6, Math.PI);
@@ -365,19 +374,22 @@ Promise.all(MODELS.map(n => new Promise((res) =>
   place('kitchenCoffeeMachine', 6.5, 6.6, Math.PI, {y:TOP*1.18});
   place('kitchenCabinetUpper', 4.5, 6.6, Math.PI, {y:3.0});
   place('trashcan', 8.4, 7.6, 0);
-  // ── TRAKT C: Glas-Meetingraum ──
+  // ── TRAKT C: Glas-Meetingraum (Tisch zentriert, Stuehle symmetrisch) ──
   place('table', 15.5, 8, 0, {sx:SCALE*1.6, sz:SCALE*1.2});
-  [[13,5.6,0],[15.5,5.6,0],[18,5.6,0],[13,10.4,Math.PI],[15.5,10.4,Math.PI],[18,10.4,Math.PI]].forEach(([cx,cz,r])=>
-    place('chairModernCushion', cx, cz, r));
+  ring6(15.5, 8, 0, [[13,6.3,0],[15.5,6.3,0],[18,6.3,0],[13,9.7,Math.PI],[15.5,9.7,Math.PI],[18,9.7,Math.PI]]);
   place('pottedPlant', 20.3, 4.2);
   // ── TRAKT C: Konferenztisch ──
   place('table', -5, 13, 0, {sx:SCALE*2.4, sz:SCALE*1.2});
-  [[-8.5,10.8,0],[-5,10.8,0],[-1.5,10.8,0],[-8.5,15.2,Math.PI],[-5,15.2,Math.PI],[-1.5,15.2,Math.PI]].forEach(([cx,cz,r])=>
-    place('chairModernCushion', cx, cz, r));
+  ring6(-5, 13, 0, [[-8.5,11.3,0],[-5,11.3,0],[-1.5,11.3,0],[-8.5,14.7,Math.PI],[-5,14.7,Math.PI],[-1.5,14.7,Math.PI]]);
   // ── Pflanzen in Ecken ──
   place('pottedPlant', -18, 12.5);
-  place('plantSmall1', -18.5, -3, 0, {s:SCALE*1.3});
-  place('plantSmall2', 8.5, -16, 0, {s:SCALE*1.3});
+  place('plantSmall1', -18.5, -3.5, 0, {s:SCALE*1.3});
+  place('plantSmall2', 9, -16, 0, {s:SCALE*1.3});
+  // Figuren-Sitzplaetze exakt auf die Stuehle setzen
+  if (typeof chars !== 'undefined') chars.forEach(c => {
+    const h = window.__home[c.cfg.name];
+    if (h) { c.cfg.x = h.x; c.cfg.z = h.z; c.cfg.route[0].x = h.x; c.cfg.route[0].z = h.z; }
+  });
   window.__furnitureReady = true;
 });
 
@@ -412,6 +424,11 @@ function buildChar(cfg) {
   box(0.4, 0.16, 0.38, hair, 0, 2.07, 0, 0, g);
   if (cfg.look.longHair) { box(0.42,0.34,0.18,hair,0,1.92,-0.16,0,g); }
   else { box(0.42,0.1,0.4,hair,0,1.99,0.02,0,g); }            // kurzer Pony
+  if (cfg.look.ponytail) {                                     // Pferdeschwanz (Julia)
+    box(0.42,0.26,0.2,hair,0,1.94,-0.14,0,g);                 // Haaransatz hinten
+    box(0.13,0.14,0.13,0xe7a3b8,0,1.92,-0.26,0,g);            // Haargummi
+    box(0.17,0.62,0.17,hair,0,1.62,-0.3,0,g);                 // herabfallender Zopf
+  }
   if (cfg.look.beard) box(0.3,0.12,0.06,cfg.look.beard,0,1.71,0.17,0,g);
   if (cfg.look.headphones) {                                  // Kopfhoerer (Timo)
     box(0.46,0.1,0.12,0x23262f,0,2.12,0,0,g);
@@ -468,6 +485,17 @@ const AGENTS = [
       { x:-9, z:3 },  { x:-5, z:6 },
       { x:-5, z:11 },                               // Konferenztisch
       { x:-2, z:2 },  { x:-9, z:-7 },
+    ],
+  },
+  {
+    name:'Julia', initials:'JU', role:'Teamassistentin', cmd:'/julia', color:0xe07b9a,
+    x:-2, z:-1.7,
+    look:{ skin:0xf4c9a8, top:0xe07b9a, hair:0xe6c45a, pants:0x3a3550, ponytail:true },
+    route:[
+      { x:-2, z:-1.7, sit:true, face:Math.PI },      // eigener Assistenz-Desk (Trakt C)
+      { x:1, z:2 }, { x:5, z:5 },                     // Richtung Kueche
+      { x:-1, z:9 }, { x:-5, z:6 },                   // Konferenz/Ablage
+      { x:-9, z:1 }, { x:-3, z:-3 },
     ],
   },
 ];
