@@ -470,6 +470,19 @@ const AGENTS = [
       { x:-2, z:2 },  { x:-9, z:-7 },
     ],
   },
+  {
+    name:'Julia', initials:'JU', role:'Teamassistentin', cmd:'/julia', color:0x3D8F9E,
+    x:-2, z:-1,
+    look:{ skin:0xf4c9a8, top:0x3D8F9E, hair:0xF0C845, pants:0x3e3b54, longHair:true },
+    route:[
+      { x:-2, z:-1, sit:true, face:Math.PI },       // Buchhaltungs-Desk (Trakt C)
+      { x:-1, z:3 }, { x:2, z:6 },
+      { x:5,  z:9 }, { x:10, z:9 },                 // Richtung Glas-Meetingraum
+      { x:5,  z:5 }, { x:0, z:2 },
+      { x:-3, z:6 }, { x:-5, z:11 },                // Konferenztisch
+      { x:-3, z:4 }, { x:-1, z:0 },
+    ],
+  },
 ];
 
 const chars = AGENTS.map(buildChar);
@@ -524,7 +537,9 @@ function renderLog() {
   if (!hist.length) {
     const greet = chatAgent === 'emilia'
       ? 'Hi, ich bin Emilia. Frag mich zu Social Media, Titeln, Captions oder briefe ein Video.'
-      : 'Servus, Timo hier. Frag mich zum Schnitt, zu Kunden-Schnittregeln oder briefe einen Cut.';
+      : chatAgent === 'timo'
+      ? 'Servus, Timo hier. Frag mich zum Schnitt, zu Kunden-Schnittregeln oder briefe einen Cut.'
+      : 'Hallo, ich bin Julia! Ich kümmere mich um administrative Aufgaben und allgemeine Anliegen. Wie kann ich helfen?';
     const d = document.createElement('div'); d.id = 'chat-empty'; d.textContent = greet;
     log.appendChild(d); return;
   }
