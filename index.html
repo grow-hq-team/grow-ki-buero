@@ -558,21 +558,41 @@ function renderWorkflows(agentKey, hex) {
     const b = document.createElement('button'); b.className = 'wf-btn';
     b.innerHTML = '<span class="t"></span><span class="s"></span>';
     b.querySelector('.t').textContent = wf.title;
-    b.querySelector('.s').textContent = wf.id + ' · in Claude Code starten ↗';
+    b.querySelector('.s').textContent = wf.id + ' · Prompt kopieren';
     if (hex) b.querySelector('.s').style.color = hex;
     b.onclick = () => startWorkflow(agentKey, wf);
     box.appendChild(b);
   });
 }
 
+// Robust in die Zwischenablage kopieren (mit Fallback, falls die Clipboard-API blockt)
+function copyText(text) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+      return;
+    }
+  } catch (e) {}
+  fallbackCopy(text);
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.top = '-1000px'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
 window.startWorkflow = (agentKey, wf) => {
   const prompt = '/' + agentKey + '\n\nIch möchte den Workflow „' + wf.title + '" starten (' + wf.id +
     '). Ich habe einen neuen Auftrag dafür. Sag mir bitte, was du von mir brauchst, um loszulegen.';
-  navigator.clipboard.writeText(prompt).catch(() => {});
-  const t = document.getElementById('toast');
-  t.textContent = 'Workflow kopiert: in Claude Code einfügen';
-  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
-  window.open('https://claude.ai/code', '_blank');
+  copyText(prompt);
+  showToast('Prompt kopiert: in Claude Code einfügen');
 };
 
 function renderLog() {
@@ -635,11 +655,8 @@ window.handoff = () => {
     payload += '\n\nBisheriger Chat-Verlauf aus dem KI-Büro (bitte hier weiterführen):\n';
     payload += hist.map(m => (m.role === 'user' ? 'Ich: ' : activeChar.cfg.name + ': ') + m.content).join('\n');
   }
-  navigator.clipboard.writeText(payload).catch(() => {});
-  const t = document.getElementById('toast');
-  t.textContent = activeChar.cfg.cmd + ' + Verlauf kopiert: in Claude Code einfügen';
-  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
-  window.open('https://claude.ai/code', '_blank');
+  copyText(payload);
+  showToast(activeChar.cfg.cmd + ' + Verlauf kopiert: in Claude Code einfügen');
 };
 
 document.getElementById('chat-text').addEventListener('keydown', e => {
