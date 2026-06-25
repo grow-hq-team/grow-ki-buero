@@ -1,0 +1,60 @@
+{
+  "emilia": [
+    {
+      "id": "WF-01",
+      "title": "Video-Produktion anstoßen"
+    },
+    {
+      "id": "WF-02",
+      "title": "Video-QA und Freigabe"
+    },
+    {
+      "id": "WF-03b",
+      "title": "Animation-Brief → Notion-Aufgabe für Michelle"
+    },
+    {
+      "id": "WF-03",
+      "title": "YouTube Upload + Freigabe-Task an Michelle"
+    },
+    {
+      "id": "WF-04",
+      "title": "Redaktionsplan prüfen"
+    },
+    {
+      "id": "WF-05",
+      "title": "Monthly Performance Report"
+    },
+    {
+      "id": "WF-07",
+      "title": "Testimonial-Batch an Timo (kundenübergreifend)"
+    },
+    {
+      "id": "WF-06",
+      "title": "Redaktionsplan-Management (Posts einstellen + fertigstellen)"
+    }
+  ],
+  "timo": [
+    {
+      "id": "WF-01",
+      "title": "YouTube Long-Form schneiden"
+    },
+    {
+      "id": "WF-04",
+      "title": "Testimonial-Video schneiden (kundenübergreifend, batch-fähig)"
+    },
+    {
+      "id": "WF-02",
+      "title": "Animation-Bundle auf Cut legen"
+    },
+    {
+      "id": "WF-03",
+      "title": "Feedback umsetzen"
+    },
+    {
+      "id": "WF-03",
+      "title": "Neues Rohmaterial empfangen"
+    }
+  ],
+  "julia": [],
+  "katja": []
+}

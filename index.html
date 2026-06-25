@@ -33,7 +33,15 @@ canvas { display: block; }
 #chat-role { font-size: 11px; color: #8a8ea4; }
 #chat-close { margin-left: auto; background: none; border: none; font-size: 24px; color: #b3b6c6; cursor: pointer; line-height: 1; }
 #chat-close:hover { color: #6b6e80; }
-#chat-log { flex: 1; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+#chat-workflows { padding: 0 16px; max-height: 38%; overflow-y: auto; flex: 0 0 auto; }
+#chat-workflows.empty { display: none; }
+.wf-head { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #9a9ec0; margin: 14px 2px 8px; display: flex; align-items: center; gap: 6px; }
+.wf-live { font-size: 9px; font-weight: 700; color: #1D9E75; background: #e3f6ee; border-radius: 6px; padding: 1px 6px; letter-spacing: 0.04em; }
+.wf-btn { width: 100%; text-align: left; border: 1px solid #e7e5f2; background: #faf9ff; border-radius: 12px; padding: 10px 12px; margin-bottom: 7px; cursor: pointer; transition: border-color .15s, background .15s; }
+.wf-btn:hover { border-color: #6b4fb5; background: #f3f0ff; }
+.wf-btn .t { display: block; font-size: 13px; font-weight: 600; color: #2b2e44; line-height: 1.3; }
+.wf-btn .s { display: block; font-size: 10.5px; color: #9a9ec0; margin-top: 2px; }
+#chat-log { flex: 1 1 auto; overflow-y: auto; padding: 12px 18px; display: flex; flex-direction: column; gap: 10px; min-height: 90px; }
 .msg { max-width: 85%; padding: 9px 13px; border-radius: 14px; font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
 .msg.user { align-self: flex-end; background: #6b4fb5; color: #fff; border-bottom-right-radius: 5px; }
 .msg.bot  { align-self: flex-start; background: #f1f0fa; color: #33364a; border-bottom-left-radius: 5px; }
@@ -86,6 +94,7 @@ canvas { display: block; }
     </div>
     <button id="chat-close" onclick="closeChat()">×</button>
   </div>
+  <div id="chat-workflows"></div>
   <div id="chat-log"></div>
   <div id="chat-input-row">
     <textarea id="chat-text" rows="1" placeholder="Schreib eine Nachricht..."></textarea>
@@ -522,20 +531,59 @@ function openChat(c) {
   document.getElementById('chat-name').textContent = c.cfg.name;
   document.getElementById('chat-role').textContent = c.cfg.role;
   document.getElementById('chat-send').style.background = hex;
+  renderWorkflows(chatAgent, hex);
   renderLog();
   document.getElementById('chat').classList.add('open');
   document.getElementById('chat-text').focus();
 }
 window.closeChat = () => document.getElementById('chat').classList.remove('open');
 
+// ── Workflows (live von GitHub via Netlify-Funktion, Fallback workflows.json) ──
+let WORKFLOWS = {}, WF_LIVE = false;
+fetch('workflows.json').then(r => r.json()).then(d => { WORKFLOWS = d || {}; if (chatAgent) renderWorkflows(chatAgent); }).catch(() => {});
+fetch('/.netlify/functions/workflows').then(r => r.json()).then(d => {
+  if (d && d.live) { WF_LIVE = true; Object.keys(d).forEach(k => { if (Array.isArray(d[k])) WORKFLOWS[k] = d[k]; }); if (chatAgent) renderWorkflows(chatAgent); }
+}).catch(() => {});
+
+function renderWorkflows(agentKey, hex) {
+  const box = document.getElementById('chat-workflows');
+  const list = WORKFLOWS[agentKey] || [];
+  box.innerHTML = '';
+  if (!list.length) { box.classList.add('empty'); return; }
+  box.classList.remove('empty');
+  const head = document.createElement('div'); head.className = 'wf-head';
+  head.innerHTML = 'Workflows' + (WF_LIVE ? ' <span class="wf-live">live</span>' : '');
+  box.appendChild(head);
+  list.forEach(wf => {
+    const b = document.createElement('button'); b.className = 'wf-btn';
+    b.innerHTML = '<span class="t"></span><span class="s"></span>';
+    b.querySelector('.t').textContent = wf.title;
+    b.querySelector('.s').textContent = wf.id + ' · in Claude Code starten ↗';
+    if (hex) b.querySelector('.s').style.color = hex;
+    b.onclick = () => startWorkflow(agentKey, wf);
+    box.appendChild(b);
+  });
+}
+
+window.startWorkflow = (agentKey, wf) => {
+  const prompt = '/' + agentKey + '\n\nIch möchte den Workflow „' + wf.title + '" starten (' + wf.id +
+    '). Ich habe einen neuen Auftrag dafür. Sag mir bitte, was du von mir brauchst, um loszulegen.';
+  navigator.clipboard.writeText(prompt).catch(() => {});
+  const t = document.getElementById('toast');
+  t.textContent = 'Workflow kopiert: in Claude Code einfügen';
+  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
+  window.open('https://claude.ai/code', '_blank');
+};
+
 function renderLog() {
   const log = document.getElementById('chat-log');
   const hist = loadHist(chatAgent);
   log.innerHTML = '';
   if (!hist.length) {
-    const greet = chatAgent === 'emilia'
-      ? 'Hi, ich bin Emilia. Frag mich zu Social Media, Titeln, Captions oder briefe ein Video.'
-      : 'Servus, Timo hier. Frag mich zum Schnitt, zu Kunden-Schnittregeln oder briefe einen Cut.';
+    const hasWf = (WORKFLOWS[chatAgent] || []).length > 0;
+    const greet = 'Hi, ich bin ' + (activeChar ? activeChar.cfg.name : '') + '.' +
+      (hasWf ? ' Oben einen Workflow wählen und in Claude Code starten, oder hier kurz schreiben.'
+             : ' Schreib mir kurz, oder übernimm nach Claude Code.');
     const d = document.createElement('div'); d.id = 'chat-empty'; d.textContent = greet;
     log.appendChild(d); return;
   }

@@ -19,6 +19,26 @@ Look, Route, Slash-Command) und in `netlify/functions/chat.js` unter `AGENTS` ei
   claude.ai/code. Dort arbeitet der echte Agent mit allen Tools, und der Verlauf bleibt findbar.
 - **Verlauf:** wird pro Mitarbeiter im Browser (localStorage) gespeichert.
 
+## Workflows (Live-Sync mit GitHub)
+
+Klick auf einen Mitarbeiter zeigt seine **Workflows** als Buttons. Klick auf einen Button kopiert
+einen Start-Prompt (Slash-Command + Opener) in die Zwischenablage und öffnet claude.ai/code, sodass
+der richtige KI-Agent mit dem richtigen Workflow geladen wird.
+
+Die Workflows kommen aus der `workflows.md` jedes Agenten auf GitHub:
+- Emilia: `grow-hq-disziplin-content/ai-team/agents/emilia-social-media/workflows.md`
+- Timo: `grow-hq-disziplin-video/ai-team/agents/timo-video-cutter/workflows.md`
+- (Julia/Katja: noch keine workflows.md; Mapping in `netlify/functions/workflows.js` ergänzen, sobald vorhanden.)
+
+Geparst werden die `## WF-NN · Titel` Überschriften. **Erweitert ein Agent seine workflows.md,
+erscheinen neue Workflows automatisch im Office, ohne Redeploy** (Live-Sync via Netlify-Funktion).
+
+- **Live-Sync aktivieren:** Umgebungsvariable `GITHUB_TOKEN` in Netlify setzen (fein-granularer
+  Read-only-Token mit Zugriff auf Repository-Contents der Agenten-Repos). Dann zieht die Funktion
+  `/.netlify/functions/workflows` die Workflows bei jedem Laden frisch von GitHub (Badge "live").
+- **Ohne Token:** Das Office nutzt die mitgelieferte `workflows.json` (Stand beim letzten ZIP-Build).
+  Funktioniert sofort, spiegelt aber nur den damaligen Stand.
+
 ## Deploy auf Netlify
 
 1. Repo in Netlify als neue Site verbinden (Build-Command leer, Publish-Verzeichnis `.`).
