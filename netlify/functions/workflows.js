@@ -6,10 +6,12 @@
 
 const OWNER = 'grow-hq-team';
 const SOURCES = {
-  emilia: { repo: 'grow-hq-disziplin-content', path: 'ai-team/agents/emilia-social-media/workflows.md' },
-  timo:   { repo: 'grow-hq-disziplin-video',   path: 'ai-team/agents/timo-video-cutter/workflows.md' },
-  // julia / katja hier ergaenzen, sobald sie eine workflows.md im jeweiligen Repo haben:
-  // julia: { repo: '...', path: '...workflows.md' },
+  emilia: { repo: 'grow-hq-disziplin-content',       path: 'ai-team/agents/emilia-social-media/workflows.md' },
+  timo:   { repo: 'grow-hq-disziplin-video',         path: 'ai-team/agents/timo-video-cutter/workflows.md' },
+  katja:  { repo: 'grow-hq-kunde-sandra-loeckener',  path: 'ai-team/agents/katja-support/workflows.md' },
+  julia:  { repo: 'grow-hq-kunde-grow-hq-intern',    path: 'ai-team/agents/julia-assistenz/workflows.md' },
+  // Neuer Mitarbeiter: hier Repo + Pfad zu seiner workflows.md ergaenzen.
+  // Sobald die Datei existiert (## WF-NN · Titel), erscheinen die Workflows automatisch.
 };
 const RE = /^##\s+(WF-[0-9A-Za-z]+)\s*[·:]\s*(.+?)\s*$/;
 
