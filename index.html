@@ -344,7 +344,7 @@ Promise.all(MODELS.map(n => new Promise((res) =>
   // ── BULLPEN Reihe Nord (z=-8), Sitze schauen nach +z ──
   window.__home.Timo   = station(-9, -8, 0, { screens:2, kb:true });   // Video
   window.__home.Emilia = station(-4, -8, 0, { laptop:true, books:true });
-  station(1, -8, 0, { screens:1, kb:true });                            // Deko-Platz
+  window.__home.Manuel = station(1, -8, 0, { screens:1, kb:true });
   // ── BULLPEN Reihe Sued (z=-1), Sitze schauen nach -z (gegenueber) ──
   window.__home.Julia  = station(-9, -1, Math.PI, { laptop:true, kb:true });
   window.__home.Katja  = station(-4, -1, Math.PI, { laptop:true, kb:true });
@@ -488,6 +488,16 @@ const AGENTS = [
       { x:-4, z:0.98, sit:true, face:Math.PI },      // Bullpen Reihe Sued (Support)
       { x:-4, z:3 }, { x:3, z:4 }, { x:5.5, z:4 }, { x:5.5, z:-2 },
       { x:1, z:-4.5 }, { x:-6, z:-4.5 }, { x:-11, z:-4.5 }, { x:-11, z:3 }, { x:-4, z:3 },
+    ],
+  },
+  {
+    name:'Manuel', initials:'MA', role:'Mitarbeiter', cmd:'/manuel', color:0xf2b300,
+    x:1, z:-9.98,
+    look:{ skin:0xf0c19a, top:0xf2c14e, hair:0x6b4a2b, pants:0x2c3142 },
+    route:[
+      { x:1, z:-9.98, sit:true, face:0 },            // Bullpen Reihe Nord
+      { x:3, z:-9.98 }, { x:3, z:-4.5 }, { x:-2, z:-4.5 }, { x:-9, z:-4.5 },
+      { x:-11, z:-4.5 }, { x:-11, z:3 }, { x:-3, z:4 }, { x:5, z:3 }, { x:5, z:-2 }, { x:3, z:-9.98 },
     ],
   },
 ];
