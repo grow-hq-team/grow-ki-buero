@@ -1,60 +1,67 @@
 {
   "emilia": [
     {
-      "id": "WF-01",
-      "title": "Video-Produktion anstoßen"
+      "command": "/emilia",
+      "desc": "YouTube-Video produzieren"
     },
     {
-      "id": "WF-02",
-      "title": "Video-QA und Freigabe"
+      "command": "/emilia",
+      "desc": "YouTube hochladen (nach Animation)"
     },
     {
-      "id": "WF-03b",
-      "title": "Animation-Brief → Notion-Aufgabe für Michelle"
+      "command": "/emilia",
+      "desc": "Testimonial-Batch produzieren + hochladen"
     },
     {
-      "id": "WF-03",
-      "title": "YouTube Upload + Freigabe-Task an Michelle"
+      "command": "/emilia",
+      "desc": "Redaktionsplan prüfen"
     },
     {
-      "id": "WF-04",
-      "title": "Redaktionsplan prüfen"
+      "command": "/emilia",
+      "desc": "Monthly Performance Report"
     },
     {
-      "id": "WF-05",
-      "title": "Monthly Performance Report"
-    },
-    {
-      "id": "WF-07",
-      "title": "Testimonial-Batch an Timo (kundenübergreifend)"
-    },
-    {
-      "id": "WF-06",
-      "title": "Redaktionsplan-Management (Posts einstellen + fertigstellen)"
+      "command": "/emilia",
+      "desc": "Redaktionsplan-Management (Posts einstellen)"
     }
   ],
   "timo": [
     {
-      "id": "WF-01",
-      "title": "YouTube Long-Form schneiden"
+      "command": "/timo-animation-bundle",
+      "desc": "Animation-Bundle auf Cut legen"
     },
     {
-      "id": "WF-04",
-      "title": "Testimonial-Video schneiden (kundenübergreifend, batch-fähig)"
+      "command": "/timo-feedback",
+      "desc": "Feedback umsetzen"
     },
     {
-      "id": "WF-02",
-      "title": "Animation-Bundle auf Cut legen"
+      "command": "/timo-snippet-ads",
+      "desc": "Snippet Ads erstellen"
     },
     {
-      "id": "WF-03",
-      "title": "Feedback umsetzen"
+      "command": "/timo-testimonial",
+      "desc": "Testimonial-Video schneiden (batch-fähig)"
     },
     {
-      "id": "WF-03",
-      "title": "Neues Rohmaterial empfangen"
+      "command": "/timo-youtube-longform",
+      "desc": "YouTube Long-Form schneiden"
     }
   ],
-  "julia": [],
+  "julia": [
+    {
+      "command": "/julia-kunden-onboarding",
+      "desc": "Kunden-Onboarding"
+    },
+    {
+      "command": "/julia-testimonials",
+      "desc": "Testimonial-Datenbank anlegen & befüllen"
+    }
+  ],
+  "manuel": [
+    {
+      "command": "/manuel-omnipraesenz-kampagne",
+      "desc": "Omnipräsenz-Kampagne erstellen"
+    }
+  ],
   "katja": []
 }
