@@ -14,6 +14,7 @@ const SOURCES = {
   julia:  { repo: 'grow-hq-disziplin-content',      dir: 'ai-team/agents/julia-assistentin' },
   manuel: { repo: 'grow-hq-disziplin-content',      dir: 'ai-team/agents/manuel-creative-strategist' },
   katja:  { repo: 'grow-hq-kunde-sandra-loeckener', dir: 'ai-team/agents/katja-support' },
+  fabian: { repo: 'grow-hq-disziplin-content',      dir: 'ai-team/agents/fabian-finance' },
   // Neuer Mitarbeiter: hier Repo + Agenten-Ordner ergaenzen.
 };
 const WF_HEAD = /^##\s+(WF-[0-9A-Za-z]+)\s*[·:]\s*(.+?)\s*$/;
