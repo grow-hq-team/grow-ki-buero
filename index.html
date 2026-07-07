@@ -342,10 +342,12 @@ Promise.all(MODELS.map(n => new Promise((res) =>
   gltfLoader.load('models/'+n+'.glb', g => { _cache[n] = g.scene; res(); }, undefined, () => res())
 ))).then(() => {
   // ── BULLPEN Reihe Nord (z=-8), Sitze schauen nach +z ──
+  window.__home.Julius = station(-14, -8, 0, { screens:1, kb:true });  // Technik
   window.__home.Timo   = station(-9, -8, 0, { screens:2, kb:true });   // Video
   window.__home.Emilia = station(-4, -8, 0, { laptop:true, books:true });
   window.__home.Manuel = station(1, -8, 0, { screens:1, kb:true });
   // ── BULLPEN Reihe Sued (z=-1), Sitze schauen nach -z (gegenueber) ──
+  window.__home.Moritz = station(-14, -1, Math.PI, { screens:1, kb:true });
   window.__home.Julia  = station(-9, -1, Math.PI, { laptop:true, kb:true });
   window.__home.Katja  = station(-4, -1, Math.PI, { laptop:true, kb:true });
   window.__home.Fabian = station(1, -1, Math.PI, { screens:1, kb:true });
@@ -471,7 +473,7 @@ const AGENTS = [
     ],
   },
   {
-    name:'Julia', initials:'JU', role:'Teamassistentin', cmd:'/julia', color:0xe07b9a,
+    name:'Julia', initials:'JU', role:'Projektmanagerin', cmd:'/julia', color:0xe07b9a,
     x:-9, z:0.98,
     look:{ skin:0xf4c9a8, top:0xe07b9a, hair:0xe6c45a, pants:0x3a3550, ponytail:true },
     route:[
@@ -508,6 +510,26 @@ const AGENTS = [
       { x:1, z:-9.98, sit:true, face:0 },            // Bullpen Reihe Nord
       { x:3, z:-9.98 }, { x:3, z:-4.5 }, { x:-2, z:-4.5 }, { x:-9, z:-4.5 },
       { x:-11, z:-4.5 }, { x:-11, z:3 }, { x:-3, z:4 }, { x:5, z:3 }, { x:5, z:-2 }, { x:3, z:-9.98 },
+    ],
+  },
+  {
+    name:'Julius', initials:'JS', role:'Techniker', cmd:'/julius', color:0xd23b3b,
+    x:-14, z:-9.98,
+    look:{ skin:0xf0c19a, top:0xd23b3b, hair:0x6b4a2b, pants:0x2c3142 },
+    route:[
+      { x:-14, z:-9.98, sit:true, face:0 },          // Bullpen Reihe Nord (Technik)
+      { x:-11.5, z:-9.98 }, { x:-11.5, z:-4.5 }, { x:-6, z:-4.5 }, { x:1, z:-4.5 },
+      { x:5, z:-2 }, { x:5, z:3 }, { x:-4, z:4 }, { x:-11.5, z:3 }, { x:-11.5, z:-9.98 },
+    ],
+  },
+  {
+    name:'Moritz', initials:'MO', role:'Media Buyer', cmd:'/moritz', color:0x2f7d4f,
+    x:-14, z:0.98,
+    look:{ skin:0xf0c19a, top:0x2f7d4f, hair:0xe6c45a, pants:0x2c3142 },
+    route:[
+      { x:-14, z:0.98, sit:true, face:Math.PI },     // Bullpen Reihe Sued (Media Buying)
+      { x:-14, z:3 }, { x:-11.5, z:4 }, { x:-4, z:4 }, { x:5, z:3 }, { x:5, z:-2 },
+      { x:1, z:-4.5 }, { x:-6, z:-4.5 }, { x:-11.5, z:-4.5 }, { x:-11.5, z:3 }, { x:-14, z:3 },
     ],
   },
 ];
