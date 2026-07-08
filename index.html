@@ -230,8 +230,8 @@ function windowOnWall(x, z, ry, w=4.4) {
   box(w, 3.2, 0.16, 0xc7cedb, x, 4.3, z, ry);
   box(w-0.5, 2.6, 0.08, 0x9fd2ef, x, 4.3, z, ry, root, { transparent:true, opacity:0.5 }).castShadow = false;
 }
-windowOnWall(4, -FD/2+0.28, 0); windowOnWall(11, -FD/2+0.28, 0);            // hinten
-windowOnWall(-FW/2+0.28, -9, Math.PI/2); windowOnWall(-FW/2+0.28, 5, Math.PI/2); // links
+// Kuechen-/Rueckwand bleibt ohne blanke Fensterplatten (nur Charts + YT-Symbol)
+windowOnWall(-FW/2+0.28, 0, Math.PI/2); windowOnWall(-FW/2+0.28, 5, Math.PI/2); // links (z=-9 -> z=0, neben Moritz)
 
 // ─────────────────────────────────────────────
 // CUSTOM-DEKO (was Kenney nicht hat): Glas, Whiteboard, Pinnwand, Ringlicht, Wandbilder
@@ -249,14 +249,14 @@ function ringLight(x, z, s=1) {
   ring.position.set(0,3.0,0); g.add(ring);
   box(0.55,0.95,0.07,0x15171d,0,3.0,0.16,0,g).material = screen(0x2a2f3a);
 }
-// Kleines Trampolin (Pausenraum)
-function trampoline(x, z, s=1) {
-  const g = new THREE.Group(); g.position.set(x,0,z); g.scale.setScalar(s); root.add(g);
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.35,0.16,8,20), mat(0x2f6fd6));
-  ring.rotation.x = Math.PI/2; ring.position.y = 1.0; ring.castShadow = true; g.add(ring);
-  const matTop = new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,0.12,20), mat(0x2a2d36));
-  matTop.position.y = 0.98; matTop.castShadow = true; matTop.receiveShadow = true; g.add(matTop);
-  for (let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4; cyl(0.09,0.11,1.0,0x3a3a44,Math.cos(a)*1.15,0.5,Math.sin(a)*1.15,6,g); }
+// Glastuer (Badezimmer): Scharnier bei (hx,hz), Blatt in den Raum geoeffnet
+function glassDoor(hx, hz, w, openRy) {
+  const g = new THREE.Group(); g.position.set(hx, 0, hz); g.rotation.y = openRy; root.add(g);
+  box(w, 4.6, 0.08, 0xbfe3f2, w/2, 2.4, 0, 0, g, { transparent:true, opacity:0.32 }).castShadow = false;
+  box(w, 0.14, 0.14, 0xcfd6e2, w/2, 0.12, 0, 0, g);
+  box(w, 0.14, 0.14, 0xcfd6e2, w/2, 4.7, 0, 0, g);
+  cyl(0.06, 0.06, 4.7, 0xcfd6e2, 0, 2.35, 0, 6, g);           // Scharnierpfosten
+  box(0.09, 0.55, 0.09, 0x9aa3b2, w-0.2, 2.2, 0.14, 0, g);    // Griff
   return g;
 }
 function frame(x, y, z, ry, motif, w=2.0, h=1.5) {
@@ -290,13 +290,12 @@ pie2.rotation.x = Math.PI/2; pie2.position.set(-2.8, 4.4, -15.7); root.add(pie2)
 box(2.0, 2.2, 0.12, 0xffffff, 1.6, 3.9, -15.78);
 for (let r=0;r<3;r++) for (let cc=0;cc<4;cc++)
   box(0.4,0.36,0.04,(r+cc)%2?0xe8edf5:0xf3f6fb,0.9+cc*0.45,4.5-r*0.55,-15.7);
-// Pinnwand (Rueckwand links)
-box(3.2, 2.1, 0.1, 0xb98a5a, -11, 4.0, -15.78);
-[[0xffd34e,-0.85,0.45],[0xff8fa3,0.15,0.55],[0x8fd0ff,0.85,0.2],[0xb6f08a,-0.3,-0.35]].forEach(([c,sx,sy])=>
-  box(0.55,0.55,0.03,c,-11+sx,4.0+sy,-15.68));
+// Pinnwand -> linke Wand neben Julius/Moritz (frei von der Badezimmerwand)
+box(3.2, 2.1, 0.1, 0xb98a5a, -17.78, 4.0, -4, Math.PI/2);
+[[0xffd34e,-0.85,0.45],[0xff8fa3,0.15,0.55],[0x8fd0ff,0.85,0.2],[0xb6f08a,-0.3,-0.35]].forEach(([c,sz2,sy])=>
+  box(0.55,0.55,0.03,c,-17.68,4.0+sy,-4+sz2,Math.PI/2));
 // Wandbilder (Rueckwand rechts + linke Wand)
-frame(7, 3.9, -15.78, 0, 'yt', 1.8, 1.35);
-frame(11, 3.9, -15.78, 0, 'tri', 1.8, 1.35);
+frame(4, 3.9, -15.78, 0, 'yt', 1.8, 1.35);   // nicht mehr hinter der Kuechenzeile
 frame(-17.78, 3.9, 8, Math.PI/2, 0x4fc3f7, 1.7, 1.3);
 frame(-17.78, 3.9, 12, Math.PI/2, 0xff8a65, 1.7, 1.3);
 
@@ -352,17 +351,17 @@ window.__home = {};
 Promise.all(MODELS.map(n => new Promise((res) =>
   gltfLoader.load('models/'+n+'.glb', g => { _cache[n] = g.scene; res(); }, undefined, () => res())
 ))).then(() => {
-  // ── BULLPEN links, nach vorne gerueckt. Reihe Nord (z=-6), Sitze schauen +z ──
-  window.__home.Julius = station(-14, -6, 0, { screens:1, kb:true });  // Technik
-  window.__home.Timo   = station(-9, -6, 0, { screens:2, kb:true });   // Video
-  window.__home.Emilia = station(-4, -6, 0, { laptop:true, books:true });
-  window.__home.Manuel = station(1, -6, 0, { screens:1, kb:true });
-  // ── Reihe Sued (z=+1), Sitze schauen -z (gegenueber) ──
-  window.__home.Moritz = station(-14, 1, Math.PI, { screens:1, kb:true });
-  window.__home.Julia  = station(-9, 1, Math.PI, { laptop:true, kb:true });
-  window.__home.Katja  = station(-4, 1, Math.PI, { laptop:true, kb:true });
-  window.__home.Fabian = station(1, 1, Math.PI, { screens:1, kb:true });
-  ringLight(4, -6.5);
+  // ── BULLPEN links, weiter nach vorne. Reihe Nord (z=-3), Sitze schauen +z ──
+  window.__home.Julius = station(-14, -3, 0, { screens:1, kb:true });  // Technik
+  window.__home.Timo   = station(-9, -3, 0, { screens:2, kb:true });   // Video
+  window.__home.Emilia = station(-4, -3, 0, { laptop:true, books:true });
+  window.__home.Manuel = station(1, -3, 0, { screens:1, kb:true });
+  // ── Reihe Sued (z=+4), Sitze schauen -z (gegenueber) ──
+  window.__home.Moritz = station(-14, 4, Math.PI, { screens:1, kb:true });
+  window.__home.Julia  = station(-9, 4, Math.PI, { laptop:true, kb:true });
+  window.__home.Katja  = station(-4, 4, Math.PI, { laptop:true, kb:true });
+  window.__home.Fabian = station(1, 4, Math.PI, { screens:1, kb:true });
+  ringLight(5.5, -3);
   // ── RECHTE SEITE gestapelt: Kueche (hinten), Esstisch, Meetingtisch ──
   place('kitchenCabinet', 8.6, -15.2, 0);
   place('kitchenCabinetUpper', 8.6, -15.2, 0, {y:3.0});
@@ -370,21 +369,19 @@ Promise.all(MODELS.map(n => new Promise((res) =>
   place('kitchenCabinet', 11.4, -15.2, 0);
   place('kitchenCoffeeMachine', 11.4, -15.2, 0, {y:TOP*1.18});
   place('trashcan', 13.4, -14, 0);
-  // Esstisch (dining) mittig rechts
+  // Esstisch (dining) mittig rechts, Stuehle enger + naeher am Tisch
   place('table', 11, -6, 0, {sx:SCALE*1.3, sz:SCALE*1.1});
-  ring6(11, -6, 0, [[9.5,-8.6,0],[12.5,-8.6,0],[9.5,-3.4,Math.PI],[12.5,-3.4,Math.PI]]);
+  ring6(11, -6, 0, [[10.0,-7.55,0],[12.0,-7.55,0],[10.0,-5.45,Math.PI],[12.0,-5.45,Math.PI]]);
   place('pottedPlant', 15.5, -8);
-  // Meetingtisch (lang) vorne rechts, gleiche x-Spalte
-  place('table', 11, 6, 0, {sx:SCALE*1.05, sz:SCALE*2.0});
-  ring6(11, 6, 0, [[8.5,3.5,Math.PI/2],[8.5,6,Math.PI/2],[8.5,8.5,Math.PI/2],[13.5,3.5,-Math.PI/2],[13.5,6,-Math.PI/2],[13.5,8.5,-Math.PI/2]]);
-  // ── HINTEN LINKS: Badezimmer + Pausenraum ──
-  wall(-11, -13.2, 0.35, 5.6, 4.6);            // Trennwand Bad | Pausenraum
-  wall(-3.5, -13.2, 0.35, 5.6, 4.6);           // Trennwand Pausenraum | Buero
-  wall(-15.6, -10.2, 4.8, 0.35, 4.6);          // Frontwand Bad (Tuerluecke rechts)
-  wall(-6.8, -10.2, 5.0, 0.35, 4.6);           // Frontwand Pausenraum (Tuerluecke)
-  place('toilet', -16, -13.5, Math.PI/2);      // Badezimmer
+  // Meetingtisch (lang) vorne rechts, gleiche x-Spalte, laenger für alle 6 Stuehle
+  place('table', 11, 6, 0, {sx:SCALE*1.05, sz:SCALE*2.75});
+  ring6(11, 6, 0, [[8.5,4,Math.PI/2],[8.5,6,Math.PI/2],[8.5,8,Math.PI/2],[13.5,4,-Math.PI/2],[13.5,6,-Math.PI/2],[13.5,8,-Math.PI/2]]);
+  // ── HINTEN LINKS: Badezimmer mit Glaswaenden + Glastuer ──
+  glassWall(-12, -13.25, 5.5, Math.PI/2);      // rechte Glaswand (z -16..-10.5)
+  glassWall(-16, -10.5, 4, 0);                 // Frontglaswand (x -18..-14), Tuerluecke rechts
+  glassDoor(-14, -10.5, 2, -0.95);             // Glastuer, in den Raum geoeffnet
+  place('toilet', -16, -13.5, Math.PI/2);
   place('bathroomSink', -13, -15.1, 0);
-  trampoline(-7.2, -13);                        // Pausenraum
   place('plantSmall1', -4.4, -15, 0, {s:SCALE*1.2});
   // ── Regale, Pflanzen ──
   place('bookcaseOpen', -17.3, 4, Math.PI/2);
@@ -473,74 +470,74 @@ function buildChar(cfg) {
 const AGENTS = [
   {
     name:'Emilia', initials:'EM', role:'Social Media Managerin', cmd:'/emilia', color:0x6b4fb5,
-    x:-4, z:-7.98,
+    x:-4, z:-4.98,
     look:{ skin:0xf4c9a8, top:0x7a4fb5, hair:0x6b4226, pants:0x35304d, longHair:true },
     route:[
-      { x:-4, z:-7.98, sit:true, face:0 },           // Bullpen Reihe Nord
-      { x:-1.5, z:-7.98 }, { x:-1.5, z:-2.5 }, { x:-8, z:-2.5 }, { x:-1.5, z:-2.5 }, { x:-1.5, z:-7.98 },
+      { x:-4, z:-4.98, sit:true, face:0 },            // Bullpen Reihe Nord
+      { x:-1.5, z:-4.98 }, { x:-1.5, z:0.5 }, { x:-7, z:0.5 }, { x:-1.5, z:0.5 }, { x:-1.5, z:-4.98 },
     ],
   },
   {
     name:'Timo', initials:'TI', role:'Video Cutter', cmd:'/timo', color:0x0F6E56,
-    x:-9, z:-7.98,
+    x:-9, z:-4.98,
     look:{ skin:0xf0c19a, top:0x3d4a66, hair:0x7a4a22, pants:0x2c3142, headphones:true, beard:0x5e3f1f },
     route:[
-      { x:-9, z:-7.98, sit:true, face:0 },           // Bullpen Reihe Nord (Video)
-      { x:-6.5, z:-7.98 }, { x:-6.5, z:-2.5 }, { x:0, z:-2.5 }, { x:5, z:-2.5 }, { x:-6.5, z:-2.5 }, { x:-6.5, z:-7.98 },
+      { x:-9, z:-4.98, sit:true, face:0 },            // Bullpen Reihe Nord (Video)
+      { x:-6.5, z:-4.98 }, { x:-6.5, z:0.5 }, { x:0, z:0.5 }, { x:3, z:0.5 }, { x:-6.5, z:0.5 }, { x:-6.5, z:-4.98 },
     ],
   },
   {
     name:'Julia', initials:'JU', role:'Projektmanagerin', cmd:'/julia', color:0xe07b9a,
-    x:-9, z:2.98,
+    x:-9, z:5.98,
     look:{ skin:0xf4c9a8, top:0xe07b9a, hair:0xe6c45a, pants:0x3a3550, ponytail:true },
     route:[
-      { x:-9, z:2.98, sit:true, face:Math.PI },      // Bullpen Reihe Sued (Projektmanagement)
-      { x:-9, z:5 }, { x:-2, z:5 }, { x:5, z:5 }, { x:5, z:11 }, { x:-3, z:13 }, { x:-9, z:6 }, { x:-9, z:5 },
+      { x:-9, z:5.98, sit:true, face:Math.PI },      // Bullpen Reihe Sued (Projektmanagement)
+      { x:-9, z:8 }, { x:-2, z:8 }, { x:5, z:8 }, { x:5, z:12 }, { x:-3, z:13 }, { x:-9, z:9 }, { x:-9, z:8 },
     ],
   },
   {
     name:'Katja', initials:'KA', role:'Powerpferd Support', cmd:'/katja', color:0x3f9f6b,
-    x:-4, z:2.98,
+    x:-4, z:5.98,
     look:{ skin:0xf4c9a8, top:0x3f9f6b, hair:0x6b4a2b, pants:0x3a3550, ponytail:true },
     route:[
-      { x:-4, z:2.98, sit:true, face:Math.PI },      // Bullpen Reihe Sued (Support)
-      { x:-4, z:5 }, { x:2, z:5 }, { x:5, z:5 }, { x:2, z:5 }, { x:-4, z:5 },
+      { x:-4, z:5.98, sit:true, face:Math.PI },      // Bullpen Reihe Sued (Support)
+      { x:-4, z:8 }, { x:2, z:8 }, { x:5, z:8 }, { x:2, z:8 }, { x:-4, z:8 },
     ],
   },
   {
     name:'Fabian', initials:'FA', role:'Head of Finance', cmd:'/fabian', color:0x2f6fd6,
-    x:1, z:2.98,
+    x:1, z:5.98,
     look:{ skin:0xf0c19a, top:0x2f6fd6, hair:0xe6c45a, pants:0x2c3142 },
     route:[
-      { x:1, z:2.98, sit:true, face:Math.PI },       // Bullpen Reihe Sued (Finance)
-      { x:1, z:5 }, { x:5, z:5 }, { x:5, z:11 }, { x:0, z:13 }, { x:-6, z:6 }, { x:1, z:5 },
+      { x:1, z:5.98, sit:true, face:Math.PI },       // Bullpen Reihe Sued (Finance)
+      { x:1, z:8 }, { x:5, z:8 }, { x:5, z:12 }, { x:0, z:13 }, { x:-6, z:9 }, { x:1, z:8 },
     ],
   },
   {
     name:'Manuel', initials:'MA', role:'Creative Strategist', cmd:'/manuel', color:0xf2b300,
-    x:1, z:-7.98,
+    x:1, z:-4.98,
     look:{ skin:0xf0c19a, top:0xf2c14e, hair:0x6b4a2b, pants:0x2c3142 },
     route:[
-      { x:1, z:-7.98, sit:true, face:0 },            // Bullpen Reihe Nord
-      { x:4, z:-7.98 }, { x:4, z:-2.5 }, { x:5, z:-2.5 }, { x:-2, z:-2.5 }, { x:4, z:-2.5 }, { x:4, z:-7.98 },
+      { x:1, z:-4.98, sit:true, face:0 },            // Bullpen Reihe Nord
+      { x:3.5, z:-4.98 }, { x:3.5, z:0.5 }, { x:-2, z:0.5 }, { x:3.5, z:0.5 }, { x:3.5, z:-4.98 },
     ],
   },
   {
     name:'Julius', initials:'JS', role:'Techniker', cmd:'/julius', color:0xd23b3b,
-    x:-14, z:-7.98,
+    x:-14, z:-4.98,
     look:{ skin:0xf0c19a, top:0xd23b3b, hair:0x6b4a2b, pants:0x2c3142 },
     route:[
-      { x:-14, z:-7.98, sit:true, face:0 },          // Bullpen Reihe Nord (Technik)
-      { x:-11.5, z:-7.98 }, { x:-11.5, z:-2.5 }, { x:-6, z:-2.5 }, { x:-11.5, z:-2.5 }, { x:-11.5, z:-7.98 },
+      { x:-14, z:-4.98, sit:true, face:0 },          // Bullpen Reihe Nord (Technik)
+      { x:-11.5, z:-4.98 }, { x:-11.5, z:0.5 }, { x:-6, z:0.5 }, { x:-11.5, z:0.5 }, { x:-11.5, z:-4.98 },
     ],
   },
   {
     name:'Moritz', initials:'MO', role:'Media Buyer', cmd:'/moritz', color:0x2f7d4f,
-    x:-14, z:2.98,
+    x:-14, z:5.98,
     look:{ skin:0xf0c19a, top:0x2f7d4f, hair:0xe6c45a, pants:0x2c3142 },
     route:[
-      { x:-14, z:2.98, sit:true, face:Math.PI },     // Bullpen Reihe Sued (Media Buying)
-      { x:-14, z:5 }, { x:-8, z:5 }, { x:0, z:5 }, { x:-8, z:5 }, { x:-14, z:5 },
+      { x:-14, z:5.98, sit:true, face:Math.PI },     // Bullpen Reihe Sued (Media Buying)
+      { x:-14, z:8 }, { x:-8, z:8 }, { x:0, z:8 }, { x:-8, z:8 }, { x:-14, z:8 },
     ],
   },
 ];
