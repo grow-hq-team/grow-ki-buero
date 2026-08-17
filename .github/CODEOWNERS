@@ -1,0 +1,4 @@
+# Freigabe-Berechtigte für dieses Repo.
+# Nur die hier genannten Personen können einen Pull Request gültig freigeben.
+# Gepflegt über config/github-schutz-einrichten.sh — nicht von Hand ändern.
+* @michellowski @grow-hq-dot
