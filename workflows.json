@@ -1,0 +1,67 @@
+{
+  "emilia": [
+    {
+      "command": "/emilia",
+      "desc": "YouTube-Video produzieren"
+    },
+    {
+      "command": "/emilia",
+      "desc": "YouTube hochladen (nach Animation)"
+    },
+    {
+      "command": "/emilia",
+      "desc": "Testimonial-Batch produzieren + hochladen"
+    },
+    {
+      "command": "/emilia",
+      "desc": "Redaktionsplan prüfen"
+    },
+    {
+      "command": "/emilia",
+      "desc": "Monthly Performance Report"
+    },
+    {
+      "command": "/emilia",
+      "desc": "Redaktionsplan-Management (Posts einstellen)"
+    }
+  ],
+  "timo": [
+    {
+      "command": "/timo-animation-bundle",
+      "desc": "Animation-Bundle auf Cut legen"
+    },
+    {
+      "command": "/timo-feedback",
+      "desc": "Feedback umsetzen"
+    },
+    {
+      "command": "/timo-snippet-ads",
+      "desc": "Snippet Ads erstellen"
+    },
+    {
+      "command": "/timo-testimonial",
+      "desc": "Testimonial-Video schneiden (batch-fähig)"
+    },
+    {
+      "command": "/timo-youtube-longform",
+      "desc": "YouTube Long-Form schneiden"
+    }
+  ],
+  "julia": [
+    {
+      "command": "/julia-kunden-onboarding",
+      "desc": "Kunden-Onboarding"
+    },
+    {
+      "command": "/julia-testimonials",
+      "desc": "Testimonial-Datenbank anlegen & befüllen"
+    }
+  ],
+  "manuel": [
+    {
+      "command": "/manuel-omnipraesenz-kampagne",
+      "desc": "Omnipräsenz-Kampagne erstellen"
+    }
+  ],
+  "katja": []
+}
